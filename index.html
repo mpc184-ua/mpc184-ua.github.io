@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Maki's Random Kanji</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: transparent;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container {
+      text-align: center;
+      background-color: #7d9bd4;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    h2 {
+      margin-top: 0;
+      color: #f7f7eb;
+    }
+    button {
+      background-color: #001226;
+	  font-weight: bold;
+      color: white;
+      border: none;
+      border-radius: 5px;
+	  margin-top: 16px;
+      padding: 10px 20px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #output {
+      margin-top: 20px;
+      text-align: left;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      background-color: #f9f9f9;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+	  max-width: 400px;  
+    }
+	
+	/* estilo del circulito de carga */
+    .loading {
+      display: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border: 10px solid #ffffff;
+      border-top: 10px solid #ffffff;
+      border-radius: 50%;
+      width: 100px;
+      height: 100px;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: translate(-50%, -50%) rotate(0deg); }
+      100% { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Maki's Random Kanji</h2>
+    <div id="output" style="background-color: #7d9bd4; color: #f7f7eb; font-weight: bold;"></div>
+	<div id="loadingIndicator" class="loading"></div>
+    <button id="generateButton">Get Random Kanji</button>
+  </div>
+
+  <script>
+    (async () => {
+      const generateButton = document.getElementById('generateButton');
+      const outputDiv = document.getElementById('output');
+      const loadingIndicator = document.getElementById('loadingIndicator');
+
+      let joyoKanjiList = [];
+
+      async function getJoyoKanjiList() {
+        const randomJoyoResponse = await fetch('https://kanjiapi.dev/v1/kanji/joyo');
+        joyoKanjiList = await randomJoyoResponse.json();
+      }
+
+      generateButton.addEventListener('click', async () => {
+        // mostrar el indicador de carga
+        loadingIndicator.style.display = 'block';
+
+        // escoger un kanji random
+        const randomIndex = Math.floor(Math.random() * joyoKanjiList.length);
+        const randomKanji = joyoKanjiList[randomIndex];
+
+        // detalles del kanji seleccionado
+        const selectedKanjiResponse = await fetch(`https://kanjiapi.dev/v1/kanji/${randomKanji}`);
+        const selectedKanjiData = await selectedKanjiResponse.json();
+
+        // ocultar el indicador de carga
+        loadingIndicator.style.display = 'none';
+
+        // para los detalles del kanji en display
+        outputDiv.innerHTML = `
+          <h2 style='font-size: 140px; margin: 0px; line-height: 140px; text-align: center;'>${selectedKanjiData.kanji}</h2>
+          <p><span style="padding: 3px 4px; background: #616161; border-radius: 6px;">Kun Readings:</span> ${selectedKanjiData.kun_readings.join(', ')}</p>
+          <p><span style="padding: 3px 4px; background: #616161; border-radius: 6px;">On Readings:</span> ${selectedKanjiData.on_readings.join(', ')}</p>
+          <p><span style="padding: 3px 4px; background: #616161; border-radius: 6px;">Meanings:</span> ${selectedKanjiData.meanings.join(', ')}</p>
+          <p><span style="padding: 3px 4px; background: #616161; border-radius: 6px;">JLPT Level:</span> N${selectedKanjiData.jlpt}</p>
+        `;
+      });
+
+      await getJoyoKanjiList();
+      generateButton.click();
+    })();
+	
+  </script>
+</body>
+</html>
